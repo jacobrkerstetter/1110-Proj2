@@ -6,7 +6,7 @@
 # [ [valid (0/1), dirty (0/1), data] ], data, data, ...]
 # store newest data at the end, LRU is the front element and we will pop off
 
-from Block import block
+from Block import Block
 
 class LevelCache:
 
@@ -25,14 +25,21 @@ class LevelCache:
     def fillEmptyContents(self):
         layers = self.size // self.blockSize
         for i in range(layers):
-            block = Block(0, 0, 0, 0)
+            setArr = []
             for j in range(self.blockSize):
-                block.append([])
+                block = Block(0, 0, 0, 0)
+                setArr.append(block)
 
-            self.contents.append(block)
+            self.contents.append(setArr)
 
-    def write(self, block):
-        return
+    def write(self, address, block):
+        # which block in a set is accessed
+        blockOffset = address % self.blockSize
+
+        # block address
+        setIndex = ( address // self.blockSize ) % (self.size // self.blockSize)
+
+        # 
 
     def read(self, address):
         # which block in a set is accessed
@@ -41,7 +48,9 @@ class LevelCache:
         # block address
         setIndex = ( address // self.blockSize ) % (self.size // self.blockSize)
        
-        if self.contents[setindex][blockOffset] == []:
+        if not self.contents[setIndex][blockOffset].valid:
+            block = Block(1, 0, tag, 1) # email about memory contents
+            self.write(address, block)
             
 
 cache = LevelCache(16, 1, 2, 1, 0)
