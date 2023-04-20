@@ -7,18 +7,16 @@ global HITS, MISSES, ACCESSES
 
 # Constructor #
 class Cache:
-    def __init__(self, op, address, ArrivingTime, size, latency, blockSize, setAssociativity, writePolicy):
-        self.op = op
-        self.addr = address
-        self.ArrTime = ArrivingTime
+    def __init__(self, layers, size, latency, blockSize, setAssociativity, writePolicy):
         # self.size = size
         # self.latency = latency
         # self.blockSize = blockSize
         # self.setAssociativity = setAssociativity
         # self.writePolicy = writePolicy
+        self.layers = layers
         self.L1 = LevelCache(size, latency, blockSize, setAssociativity, writePolicy)
 
-# Create Cache #
+# Create Cache
     def CreateLevelCache(self, level):
         level = LevelCache(self.size, self.latency, self.blockSize, self.setAssociativity, self.writePolicy)
 
@@ -29,7 +27,6 @@ class Cache:
             self.printInfo(self, self.latency)
         else:
             MISSES = MISSES + 1
-
 
 # function write
     def write(self):
