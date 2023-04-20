@@ -51,9 +51,3 @@ class LevelCache:
         if not self.contents[setIndex][blockOffset].valid:
             block = Block(1, 0, tag, 1) # email about memory contents
             self.write(address, block)
-            
-
-cache = LevelCache(16, 1, 2, 1, 0)
-
-for i in range(16):
-    cache.read(i)
