@@ -5,4 +5,7 @@
 
 from Cache import Cache
 
-c = Cache(1, 2**15, 5, 4, 4, 0)
+c = Cache(2, 8, 5, 4, 4, 0)
+c.CreateLevelCache(16, 5, 4, 4, 0)
+
+c.printInfo()

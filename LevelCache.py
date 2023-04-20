@@ -16,6 +16,7 @@ class LevelCache:
         self.blockSize = blockSize # block size in bytes
         self.setAssociativity = setAssociativity # set associativity in ways
         self.writePolicy = writePolicy # 0 = write-back, 1 = write-through
+        self.lastLevel = True
 
         self.contents = [] # [ [ [block 1], [block 2], ... ] , [ [block 1], [block 2], ... ] ]
                            # block 1: [ valid , dirty , tag , data ]
@@ -27,12 +28,12 @@ class LevelCache:
         for i in range(layers):
             setArr = []
             for j in range(self.blockSize):
-                block = Block(0, 0, 0, 0)
+                block = Block(0, 0, 0, 0, j)
                 setArr.append(block)
 
             self.contents.append(setArr)
 
-    def write(self, address, block):
+    def write(self, address, dirty):
         # which block in a set is accessed
         blockOffset = address % self.blockSize
 
@@ -51,3 +52,8 @@ class LevelCache:
         if not self.contents[setIndex][blockOffset].valid:
             block = Block(1, 0, tag, 1) # email about memory contents
             self.write(address, block)
+
+    def printContents(self):
+        for setObj in self.contents:
+            for block in setObj:
+                print('Block #' + str(block.blockNum) + ': ' + str(block.data))
