@@ -5,7 +5,12 @@
 
 from Cache import Cache
 
-c = Cache(2, 8, 5, 4, 4, 0)
-c.CreateLevelCache(16, 5, 4, 4, 0)
+c = Cache(2, 16, 5, 4, 4, 0) # 16 byte layer
+c.CreateLevelCache(32, 5, 4, 4, 0)
 
+# print empty contents
+c.printInfo()
+
+# write into cache
+c.write(1, 100, 1) # write 100 into address: 0000
 c.printInfo()

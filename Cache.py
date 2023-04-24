@@ -23,7 +23,7 @@ class Cache:
         level = LevelCache(size, latency, blockSize, setAssociativity, writePolicy)
 
         # set the last level flag to false in the previously LLC
-        self.cacheHierarchy[len(self.cacheHierarchy) - 1] = False
+        self.cacheHierarchy[len(self.cacheHierarchy) - 1].lastLevel = False
 
         # append new cache to the hierarchy
         self.cacheHierarchy.append(level)
@@ -37,7 +37,7 @@ class Cache:
             MISSES = MISSES + 1
 
     # Function write
-    def write(self, address, arrivingTime):
+    def write(self, address, data, arrivingTime):
         # consider write-thru and write-back for each level
 
         for cache in self.cacheHierarchy:
@@ -45,14 +45,29 @@ class Cache:
             if cache.writePolicy == 0:
                 # if level cache hits on write
                 if cache.read(address) == 1:
+                    # increment cache hits
+                    Cache.HITS += 1
+
                     # write data into cache and mark as dirty
                     cache.write(address, 1)
+
                     # if there are lower level caches, continue loop and write there as well
 
                 # if level cache misses on write
                 else:
-                    # allocate space for new line (may require eviction)
-                    cache.write(address, 0)
+                    # increment misses
+                    Cache.MISSES += 1
+
+                    # check if set needed is full
+                    isFull = cache.isFull(address)
+
+                    # if set needed is full, must evict
+                    if isFull:
+                        # do LRU stuff ########### not done
+                        cache.evict(address)
+                    
+                    # put the item in a free block
+                    cache.write(address, data)
 
             # if this cache is write-thru
             else:
