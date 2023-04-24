@@ -28,32 +28,51 @@ class LevelCache:
         for i in range(layers):
             setArr = []
             for j in range(self.blockSize):
-                block = Block(0, 0, 0, 0, j)
+                block = Block(0, 0, 0, 0)
                 setArr.append(block)
 
             self.contents.append(setArr)
 
-    def write(self, address, dirty):
+    def write(self, address, data):
         # which block in a set is accessed
         blockOffset = address % self.blockSize
 
         # block address
-        setIndex = ( address // self.blockSize ) % (self.size // self.blockSize)
+        setIndex = (address // self.blockSize) % (self.size // self.blockSize)
+        tag = address // setIndex
 
-        # 
+        block = Block(1, 0, tag, data)
+        self.contents[setIndex][blockOffset] = block
 
     def read(self, address):
         # which block in a set is accessed
         blockOffset = address % self.blockSize
 
         # block address
-        setIndex = ( address // self.blockSize ) % (self.size // self.blockSize)
+        setIndex = (address // self.blockSize) % (self.size // self.blockSize)
        
         if not self.contents[setIndex][blockOffset].valid:
-            block = Block(1, 0, tag, 1) # email about memory contents
-            self.write(address, block)
+            return False
+        
+        return True
+
+    # function to find out if the set needed is full
+    def isFull(self, address):
+        # calculate set
+        setLoc = (address // self.blockSize) % (self.size // self.blockSize)
+
+        # iterate over set to see if it is full
+        for block in self.contents[setLoc]:
+            if block.valid == 0:
+                return False
+
+        return True
+
+    # function to evict LRU content from set
+    def evict(self, address):
+        return
 
     def printContents(self):
         for setObj in self.contents:
             for block in setObj:
-                print('Block #' + str(block.blockNum) + ': ' + str(block.data))
+                print('Block #' + ': ' + str(block.data))
