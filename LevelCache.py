@@ -7,6 +7,7 @@
 # store newest data at the end, LRU is the front element and we will pop off
 
 from Block import Block
+from math import log2
 
 class LevelCache:
 
@@ -17,6 +18,7 @@ class LevelCache:
         self.setAssociativity = setAssociativity # set associativity in ways
         self.writePolicy = writePolicy # 0 = write-back, 1 = write-through
         self.lastLevel = True
+        self.tagBits = 32 - self.blockSize - self.setAssociativity
 
         self.contents = [] # [ [ [block 1], [block 2], ... ] , [ [block 1], [block 2], ... ] ]
                            # block 1: [ valid , dirty , tag , data ]
@@ -38,8 +40,9 @@ class LevelCache:
         blockOffset = address % self.blockSize
 
         # block address
-        setIndex = (address // self.blockSize) % (self.size // self.blockSize)
-        tag = address // setIndex
+        setIndex = (address // self.blockSize) % (self.size // self.setAssociativity)
+
+        tag = 1 >> self.tagBits
 
         block = Block(1, 0, tag, data)
         self.contents[setIndex][blockOffset] = block
@@ -49,12 +52,15 @@ class LevelCache:
         blockOffset = address % self.blockSize
 
         # block address
-        setIndex = (address // self.blockSize) % (self.size // self.blockSize)
+        setIndex = (address // self.blockSize) % (self.size // self.setAssociativity)
+
+        tag = address >> self.tagBits
        
         if not self.contents[setIndex][blockOffset].valid:
+            self.contents[setIndex][blockOffset] = Block(1, 0, tag, 100)
             return False
         
-        return True
+        return self.contents[setIndex][blockOffset]
 
     # function to find out if the set needed is full
     def isFull(self, address):
@@ -70,9 +76,27 @@ class LevelCache:
 
     # function to evict LRU content from set
     def evict(self, address):
-        return
+        # get set location
+        setLoc = (address // self.blockSize) % (self.size // self.setAssociativity)
+
+        # set base minimum
+        LRUTime = self.contents[setLoc][0].timeAccessed
+        LRUBlock = 0
+
+        # search each block in the set for minimum
+        for i in range(len(self.contents[setLoc])):
+            if self.contents[setLoc][i].timeAccessed < LRUTime:
+                LRUTime = self.contents[setLoc][i].timeAccessed
+                LRUBlock = i
+        
+        return LRUBlock
 
     def printContents(self):
+        setNum = 0
         for setObj in self.contents:
-            for block in setObj:
-                print('Block #' + ': ' + str(block.data))
+            print('Set #', setNum, end=': ')
+            setNum += 1
+            for i in range(len(setObj)):
+                print('Block #' + str(i) + ': ' + str(setObj[i].data) + ' (' + str(setObj[i].tag) + ')', end=' ')
+
+            print('')
