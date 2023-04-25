@@ -29,13 +29,13 @@ class Cache:
         self.cacheHierarchy.append(level)
 
     # Function read (return hit/miss, latency, finish time)
-    def read(self):
-        if(self.L1.read(self, self.addr)):
-            HITS = HITS + 1
-            self.printInfo(self, self.latency)
-        else:
-            MISSES = MISSES + 1
-
+    def read(self, address):
+        for cache in self.cacheHierarchy:
+            if not cache.read(address):
+                Cache.MISSES += 1
+            else:
+                Cache.HITS += 1
+            
     # Function write
     def write(self, address, data, arrivingTime):
         # consider write-thru and write-back for each level
@@ -64,7 +64,8 @@ class Cache:
                     # if set needed is full, must evict
                     if isFull:
                         # do LRU stuff ########### not done
-                        cache.evict(address)
+                        LRU = cache.evict(address)
+                        # write into the LRU block
                     
                     # put the item in a free block
                     cache.write(address, data)
@@ -85,11 +86,12 @@ class Cache:
         print("Finish Time: ")
         print("Cache Status (Only dirty bits): ")
         print("Finish Time: ")
-        print("Hit rate: " + str(self.hitRate()))
-        print("Miss rate: " + str(self.missRate()))
+        print("Hit rate: " + str(self.hitRate()) + '%')
+        print("Miss rate: " + str(self.missRate()) + '%')
 
-        for cache in self.cacheHierarchy:
-            cache.printContents()
+        for i in range(len(self.cacheHierarchy)):
+            print('Cache L' + str(i + 1))
+            self.cacheHierarchy[i].printContents()
 
 
     # Function hit rate
@@ -99,7 +101,7 @@ class Cache:
         except:
             hitRate = 0
 
-        print(hitRate)
+        return int(hitRate*100)
 
     # Function miss rate
     def missRate(self):
@@ -108,4 +110,4 @@ class Cache:
         except:
             missRate = 0
 
-        print(missRate)
+        return int(missRate*100)
