@@ -5,23 +5,84 @@
 
 from Cache import Cache
 
-c = Cache(2, 32, 5, 4, 4, 0) # 16 byte layer
+# test case 1 (2 level write back):
+'''
+programLatency = 0
+
+c = Cache(2, 32, 5, 4, 4, 0)
 c.CreateLevelCache(64, 5, 4, 4, 0)
 
 # print empty contents
 c.printInfo()
 
-# write into cache
+# warm up
 for i in range(32):
-    c.write(i, 100, i)
+    programLatency += c.read(i, i)
 
 c.printInfo()
 
-# do some test case like:
-# find a bunch of addr that addr the same set but have different tags, so they evict 
-# read those addr in in order to push LRU to different elements 
-c.write(0, 123, 0)
-c.write(1, 321, 1)
-c.write(2, 111, 2)
-c.write(0, 123, 3) 
+programLatency += c.write(0, 123, 32)
+programLatency += c.write(1, 321, 33)
+programLatency += c.write(2, 111, 34)
+programLatency += c.write(0, 412, 35) 
+print('Program Latency:', programLatency)
+c.printInfo()
+'''
+
+'''
+# test case 2 (2 level write thru):
+programLatency = 0
+
+c = Cache(2, 32, 5, 4, 4, 1)
+c.CreateLevelCache(64, 5, 4, 4, 0)
+
+# print empty contents
+c.printInfo()
+
+# warm up
+for i in range(32):
+    programLatency += c.read(i, i)
+
+c.printInfo()
+
+programLatency += c.write(0, 123, 32)
+programLatency += c.write(1, 321, 33)
+programLatency += c.write(2, 111, 34)
+programLatency += c.write(0, 412, 35) 
+print('Program Latency:', programLatency)
+c.printInfo()
+'''
+
+'''
+# test case 3 (read miss):
+programLatency = 0
+
+c = Cache(2, 32, 5, 4, 4, 1)
+c.CreateLevelCache(64, 5, 4, 4, 0)
+
+# warm up
+for i in range(32):
+    programLatency += c.read(i, i)
+
+programLatency += c.read(33, 33)
+
+print('Program Latency:', programLatency)
+c.printInfo()
+'''
+
+# test case 4 (read miss, then write, then read hit):
+programLatency = 0
+
+c = Cache(2, 32, 5, 4, 4, 0)
+c.CreateLevelCache(64, 5, 4, 4, 0)
+
+# warm up
+for i in range(32):
+    programLatency += c.read(i, i)
+
+programLatency += c.read(33, 33)
+programLatency += c.write(33, 123, 34)
+programLatency += c.read(33, 35)
+
+print('Program Latency:', programLatency)
 c.printInfo()

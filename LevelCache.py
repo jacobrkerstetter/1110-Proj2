@@ -10,6 +10,8 @@ from Block import Block
 from math import log2
 
 class LevelCache:
+    # static variable hits, misses, total accessses
+    HITS, MISSES, ACCESSES = 0, 0, 0
 
     def __init__(self, size, latency, blockSize, setAssociativity, writePolicy):
         self.size = size # total capacity in bytes
@@ -18,7 +20,7 @@ class LevelCache:
         self.setAssociativity = setAssociativity # set associativity in ways
         self.writePolicy = writePolicy # 0 = write-back, 1 = write-through
         self.lastLevel = True
-        self.tagBits = 32 - self.blockSize - self.setAssociativity
+        self.tagBits = 32 - int(log2(self.blockSize)) - int(log2(self.setAssociativity))
 
         self.contents = [] # [ [ [block 1], [block 2], ... ] , [ [block 1], [block 2], ... ] ]
                            # block 1: [ valid , dirty , tag , data ]
@@ -35,32 +37,47 @@ class LevelCache:
 
             self.contents.append(setArr)
 
-    def write(self, address, data):
+    def write(self, address, dirty, data, arrivalTime):
         # which block in a set is accessed
         blockOffset = address % self.blockSize
 
         # block address
         setIndex = (address // self.blockSize) % (self.size // self.setAssociativity)
 
-        tag = 1 >> self.tagBits
+        tag = address >> (32 - self.tagBits)
 
-        block = Block(1, 0, tag, data)
+        block = Block(1, dirty, tag, data)
+        block.timeAccessed = arrivalTime
         self.contents[setIndex][blockOffset] = block
 
-    def read(self, address):
+    def read(self, address, arrivalTime):
         # which block in a set is accessed
         blockOffset = address % self.blockSize
 
         # block address
         setIndex = (address // self.blockSize) % (self.size // self.setAssociativity)
 
-        tag = address >> self.tagBits
+        tag = address >> (32 - self.tagBits)
        
         if not self.contents[setIndex][blockOffset].valid:
+            # increment miss
+            LevelCache.MISSES += 1
+
             self.contents[setIndex][blockOffset] = Block(1, 0, tag, 100)
-            return False
+            self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
+            return [False, self.contents[setIndex][blockOffset]]
         
-        return self.contents[setIndex][blockOffset]
+        # if tag doesnt match, increment miss
+        if self.contents[setIndex][blockOffset].tag != tag:
+            LevelCache.MISSES += 1
+
+        # if tag matches, increment hit
+        else:
+            LevelCache.HITS += 1
+
+        # update time accessed and return data
+        self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
+        return [True, self.contents[setIndex][blockOffset]]
 
     # function to find out if the set needed is full
     def isFull(self, address):
@@ -91,12 +108,30 @@ class LevelCache:
         
         return LRUBlock
 
+    # Function hit rate
+    def hitRate(self):
+        try:
+            hitRate = LevelCache.HITS / (LevelCache.HITS + LevelCache.MISSES)
+        except:
+            hitRate = 0
+
+        return int(hitRate*100)
+
+    # Function miss rate
+    def missRate(self):
+        try:
+            missRate = LevelCache.MISSES / (LevelCache.HITS + LevelCache.MISSES)
+        except:
+            missRate = 0
+
+        return int(missRate*100)
+
     def printContents(self):
         setNum = 0
         for setObj in self.contents:
             print('Set #', setNum, end=': ')
             setNum += 1
             for i in range(len(setObj)):
-                print('Block #' + str(i) + ': ' + str(setObj[i].data) + ' (' + str(setObj[i].tag) + ')', end=' ')
+                print('Block #' + str(i) + ': ' + str(setObj[i].data) + ' (' + str(setObj[i].tag), str(setObj[i].timeAccessed) + ')', end=' ')
 
             print('')
