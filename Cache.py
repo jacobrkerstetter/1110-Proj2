@@ -33,6 +33,7 @@ class Cache:
         for cache in self.cacheHierarchy:
             if not cache.read(address):
                 Cache.MISSES += 1
+
             else:
                 Cache.HITS += 1
             
@@ -66,6 +67,7 @@ class Cache:
                         # do LRU stuff ########### not done
                         LRU = cache.evict(address)
                         # write into the LRU block
+                        cache.write(LRU, data)
                     
                     # put the item in a free block
                     cache.write(address, data)

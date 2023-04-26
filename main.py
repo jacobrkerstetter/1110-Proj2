@@ -13,10 +13,15 @@ c.printInfo()
 
 # write into cache
 for i in range(32):
-    c.read(i)
+    c.write(i, 100, i)
 
 c.printInfo()
 
 # do some test case like:
 # find a bunch of addr that addr the same set but have different tags, so they evict 
 # read those addr in in order to push LRU to different elements 
+c.write(0, 123, 0)
+c.write(1, 321, 1)
+c.write(2, 111, 2)
+c.write(0, 123, 3) 
+c.printInfo()
