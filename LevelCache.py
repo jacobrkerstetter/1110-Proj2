@@ -35,7 +35,7 @@ class LevelCache:
         for i in range(layers):
             setArr = []
             for j in range(self.blockSize):
-                block = Block(0, 0, 0, 0)
+                block = Block(0, 0, 0, 0, self.blockSize)
                 setArr.append(block)
 
             self.contents.append(setArr)
@@ -49,7 +49,7 @@ class LevelCache:
 
         tag = address >> (32 - self.tagBits)
 
-        block = Block(1, dirty, tag, data)
+        block = Block(1, dirty, tag, data, self.blockSize)
         block.timeAccessed = arrivalTime
         self.contents[setIndex][blockOffset] = block
 
@@ -66,7 +66,7 @@ class LevelCache:
             # increment miss
             self.misses += 1
 
-            self.contents[setIndex][blockOffset] = Block(1, 0, tag, random.randint(1, 1000))
+            self.contents[setIndex][blockOffset] = Block(1, 0, tag, random.randint(0, 255), self.blockSize)
             self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
             return [False, self.contents[setIndex][blockOffset]]
         
