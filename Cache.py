@@ -1,4 +1,5 @@
 from LevelCache import LevelCache
+import random
 # cache class
 
 class Cache:
@@ -99,7 +100,7 @@ class Cache:
                     if cache.lastLevel:
                         # add 100 if entered memory
                         latency += 100
-                        cache.write(address, 0, 100, arrivingTime)
+                        cache.write(address, 0, random.randint(1, 1000), arrivingTime)
 
         return latency
         

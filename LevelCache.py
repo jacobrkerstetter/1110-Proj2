@@ -8,6 +8,7 @@
 
 from Block import Block
 from math import log2
+import random
 
 class LevelCache:
     # static variable hits, misses, total accessses
@@ -65,7 +66,7 @@ class LevelCache:
             # increment miss
             self.misses += 1
 
-            self.contents[setIndex][blockOffset] = Block(1, 0, tag, 100)
+            self.contents[setIndex][blockOffset] = Block(1, 0, tag, random.randint(1, 1000))
             self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
             return [False, self.contents[setIndex][blockOffset]]
         
@@ -131,10 +132,10 @@ class LevelCache:
 
     def printContents(self):
         setNum = 0
-        for setObj in self.contents:
-            print('Set #', setNum, end=': ')
-            setNum += 1
-            for i in range(len(setObj)):
-                print('Block #' + str(i) + ': ' + str(setObj[i].data) + ' (' + str(setObj[i].tag), str(setObj[i].timeAccessed) + ')', end=' ')
+      #  for setObj in self.contents:
+       #     print('Set #', setNum, end=': ')
+        #    setNum += 1
+          #  for i in range(len(setObj)):
+           #     print('Block #' + str(i) + ': ' + str(setObj[i].data) + ' (' + str(setObj[i].tag), str(setObj[i].timeAccessed) + ')', end=' ')
 
-            print('')
+           # print('')
