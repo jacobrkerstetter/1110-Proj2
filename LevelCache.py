@@ -31,11 +31,12 @@ class LevelCache:
         self.misses = 0
 
     def fillEmptyContents(self):
-        layers = self.size // self.blockSize
+        layers = self.size // self.setAssociativity
         for i in range(layers):
             setArr = []
-            for j in range(self.blockSize):
+            for j in range(self.setAssociativity):
                 block = Block(0, 0, 0, 0, self.blockSize)
+                block.data = [0 for i in range(16)]
                 setArr.append(block)
 
             self.contents.append(setArr)
@@ -61,27 +62,28 @@ class LevelCache:
         setIndex = (address // self.blockSize) % (self.size // self.setAssociativity)
 
         tag = address >> (32 - self.tagBits)
-       
-        if not self.contents[setIndex][blockOffset].valid:
-            # increment miss
-            self.misses += 1
 
-            self.contents[setIndex][blockOffset] = Block(1, 0, tag, random.randint(0, 255), self.blockSize)
-            self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
-            return [False, self.contents[setIndex][blockOffset]]
+        # for each block in the set
+        for block in self.contents[setIndex]:
+            # if you find your tag and it's valid, hit
+            if block.tag == tag and block.valid:
+                print('hit')
+                self.hits += 1
+                block.timeAccessed = arrivalTime
+                print(block.data[blockOffset])
+                return [True, block.data]
         
-        # if tag doesnt match, increment miss
-        if self.contents[setIndex][blockOffset].tag != tag:
-            self.misses += 1
-            return [False, self.contents[setIndex][blockOffset]]
+        
+        # if miss, then write into first empty block
+        print('miss')
 
-        # if tag matches, increment hit
-        else:
-            self.hits += 1
+        # increment miss
+        self.misses += 1
 
-        # update time accessed and return data
+        # create new block from memory
+        self.contents[setIndex][blockOffset] = Block(1, 0, tag, 0, self.blockSize)
         self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
-        return [True, self.contents[setIndex][blockOffset]]
+        return [False, self.contents[setIndex][blockOffset]]        
 
     # function to find out if the set needed is full
     def isFull(self, address):

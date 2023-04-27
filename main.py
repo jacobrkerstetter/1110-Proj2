@@ -9,8 +9,8 @@ from Cache import Cache
 
 programLatency = 0
 
-c = Cache(2, 16384, 1, 16, 4, 1)
-c.CreateLevelCache(16384*64, 50, 16, 8, 1)
+c = Cache(2, 32, 1, 16, 4, 1)
+c.CreateLevelCache(64, 50, 16, 8, 1)
 
 # print empty contents
 c.printInfo()

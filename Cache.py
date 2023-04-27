@@ -35,8 +35,8 @@ class Cache:
             if cache.read(address, arrivingTime)[0]:
                 break
 
-        print('Finish Time:', arrivingTime)
-        print('Total Read Latency:', latency)
+        #print('Finish Time:', arrivingTime)
+        #print('Total Read Latency:', latency)
 
         return latency
             
