@@ -1,8 +1,4 @@
-each block is not 1 byte, compute cache size with this
-
-fill with block size # of random #s from 0 to 256
-
-print hit or miss for each read
+generating different random numbers for L2, need to write same data
 
 miss in L1 hit in L2 --> load info into L1
 

@@ -11,3 +11,8 @@ class Block:
             self.data.append(random.randint(0, 255))
         self.blockSize = blockSize
         self.timeAccessed = 0
+
+
+    def writeValue(self, data):
+        # actually fill it not random
+        self.data = data
