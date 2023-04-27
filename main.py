@@ -70,6 +70,7 @@ print('Program Latency:', programLatency)
 c.printInfo()
 '''
 
+'''
 # test case 4 (read miss, then write, then read hit):
 programLatency = 0
 
@@ -86,3 +87,25 @@ programLatency += c.read(33, 35)
 
 print('Program Latency:', programLatency)
 c.printInfo()
+'''
+
+'''
+# test case 5 (miss L1 hit L2):
+programLatency = 0
+
+c = Cache(2, 32, 5, 4, 4, 1)
+c.CreateLevelCache(64, 5, 4, 4, 0)
+
+# warm up
+for i in range(64):
+    programLatency += c.read(i, i)
+
+# write to L2
+c.write(45, 456, 33)
+
+# read
+c.read(45, 35)
+
+print('Program Latency:', programLatency)
+c.printInfo()
+'''

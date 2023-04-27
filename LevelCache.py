@@ -11,7 +11,6 @@ from math import log2
 
 class LevelCache:
     # static variable hits, misses, total accessses
-    HITS, MISSES, ACCESSES = 0, 0, 0
 
     def __init__(self, size, latency, blockSize, setAssociativity, writePolicy):
         self.size = size # total capacity in bytes
@@ -26,6 +25,9 @@ class LevelCache:
                            # block 1: [ valid , dirty , tag , data ]
 
         self.fillEmptyContents()
+
+        self.hits = 0
+        self.misses = 0
 
     def fillEmptyContents(self):
         layers = self.size // self.blockSize
@@ -61,7 +63,7 @@ class LevelCache:
        
         if not self.contents[setIndex][blockOffset].valid:
             # increment miss
-            LevelCache.MISSES += 1
+            self.misses += 1
 
             self.contents[setIndex][blockOffset] = Block(1, 0, tag, 100)
             self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
@@ -69,11 +71,12 @@ class LevelCache:
         
         # if tag doesnt match, increment miss
         if self.contents[setIndex][blockOffset].tag != tag:
-            LevelCache.MISSES += 1
+            self.misses += 1
+            return [False, self.contents[setIndex][blockOffset]]
 
         # if tag matches, increment hit
         else:
-            LevelCache.HITS += 1
+            self.hits += 1
 
         # update time accessed and return data
         self.contents[setIndex][blockOffset].timeAccessed = arrivalTime
@@ -111,7 +114,7 @@ class LevelCache:
     # Function hit rate
     def hitRate(self):
         try:
-            hitRate = LevelCache.HITS / (LevelCache.HITS + LevelCache.MISSES)
+            hitRate = self.hits / (self.hits + self.misses)
         except:
             hitRate = 0
 
@@ -120,7 +123,7 @@ class LevelCache:
     # Function miss rate
     def missRate(self):
         try:
-            missRate = LevelCache.MISSES / (LevelCache.HITS + LevelCache.MISSES)
+            missRate = self.misses / (self.hits + self.misses)
         except:
             missRate = 0
 
