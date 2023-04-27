@@ -64,7 +64,7 @@ class Cache:
                         # missed and went to memory
                         latency += 100
                         for i in range(len(self.cacheHierarchy)):
-                            self.cacheHierarchy[i].write(address, 0, 100, arrivingTime)
+                            self.cacheHierarchy[i].write(address, 0, data, arrivingTime)
                     
                     # if data is not dirty, fill from L2 to L1
                     elif cache.read(address, arrivingTime)[1].dirty == 0:
@@ -100,7 +100,7 @@ class Cache:
                     if cache.lastLevel:
                         # add 100 if entered memory
                         latency += 100
-                        cache.write(address, 0, random.randint(1, 1000), arrivingTime)
+                        cache.write(address, 0, random.randint(0, 255), arrivingTime)
 
         return latency
         
