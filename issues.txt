@@ -1,8 +1,3 @@
-generating different random numbers for L2, need to write same data
-
-miss in L1 hit in L2 --> load info into L1
-
-write into first empty block in set
 take largest multiple of block size that is bigger AND smaller than i ie (with block size 32 --> 35 goes to 32 low and 64 higher)
 block.data = [] of blocksize bytes
 
