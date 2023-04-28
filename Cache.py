@@ -1,13 +1,15 @@
 from LevelCache import LevelCache
 import random
+from copy import deepcopy
 # cache class
 
 class Cache:
+    LEVELS_ACTIVE = 1
 
     # Constructor
     def __init__(self, layers, size, latency, blockSize, setAssociativity, writePolicy):
         self.layers = layers
-        L1 = LevelCache(size, latency, blockSize, setAssociativity, writePolicy)
+        L1 = LevelCache(size, latency, blockSize, setAssociativity, writePolicy, 1)
 
         self.cacheHierarchy = [L1]
 
@@ -19,7 +21,8 @@ class Cache:
     # Create New Level
     def CreateLevelCache(self, size, latency, blockSize, setAssociativity, writePolicy):
         # create new level in the cache
-        level = LevelCache(size, latency, blockSize, setAssociativity, writePolicy)
+        Cache.LEVELS_ACTIVE += 1
+        level = LevelCache(size, latency, blockSize, setAssociativity, writePolicy, Cache.LEVELS_ACTIVE)
 
         # set the last level flag to false in the previously LLC
         self.cacheHierarchy[len(self.cacheHierarchy) - 1].lastLevel = False
@@ -30,13 +33,32 @@ class Cache:
     # Function read (return hit/miss, latency, finish time)
     def read(self, address, arrivingTime):
         latency = 0
+        readResults = []
         for cache in self.cacheHierarchy:
             latency += cache.latency
-            if cache.read(address, arrivingTime)[0]:
+            readResults = cache.read(address, arrivingTime)
+            # hit in whatever level we are searching
+            if readResults[0]:
                 break
+            # if we miss in the level, search the next level
 
         #print('Finish Time:', arrivingTime)
         #print('Total Read Latency:', latency)
+
+        # after searching all levels, if we missed, add 100 cycles for going to memory
+        latency += 100
+        
+        # after all searches, if we have a hit, figure out what level it is
+        hitLevel = readResults[2]
+        newBlock = readResults[1]
+
+        # if there are levels above the hit level, write the data up
+        i = 1 # start at L1
+        while i < hitLevel:
+            self.cacheHierarchy[i - 1].writeUp(address, 0, deepcopy(newBlock), arrivingTime)
+
+            # increment the level writing to
+            i += 1
 
         return latency
             
@@ -51,56 +73,30 @@ class Cache:
             # if this cache is write-back
             if cache.writePolicy == 0:
                 # if level cache hits on write
-                if cache.read(address, arrivingTime)[0] != False:
+                if cache.writeAccess(address):
                     # write data into cache and mark as dirty
                     cache.write(address, 1, data, arrivingTime)
-                    # break
+
+                    # copy into lower level caches
+                    for c in range(cache.level, self.layers):
+                        c.write(address, 1, data, arrivingTime)
+
+                    # break, writing is done, no need to go to memory
                     break
 
                 # if level cache misses on write
                 else:
-                    # if data read is dirty, read from memory into all levels
-                    if cache.read(address, arrivingTime)[1].dirty == 1 and cache.lastLevel:
-                        # missed and went to memory
-                        latency += 100
-                        for i in range(len(self.cacheHierarchy)):
-                            self.cacheHierarchy[i].write(address, 0, data, arrivingTime)
-                    
-                    # if data is not dirty, fill from L2 to L1
-                    elif cache.read(address, arrivingTime)[1].dirty == 0:
-                        for i in range(len(self.cacheHierarchy)):
-                            if cache == self.cacheHierarchy[i]:
-                                break
-                            
-                            self.cacheHierarchy[i].write(address, 0, cache.read(address, arrivingTime)[1].data, arrivingTime)
-
-                    # check if set needed is full
-                    isFull = cache.isFull(address)
-
-                    # if set needed is full, must evict
-                    if isFull:
-                        # do LRU stuff ########### not done
-                        LRU = cache.evict(address)
-                        # write into the LRU block
-                        cache.write(LRU, 1, data, arrivingTime)
-                    
-                    # put the item in a free block
-                    cache.write(address, 1, data, arrivingTime)
+                    # write, may cause eviction based on LRU policy
+                    cache.write(address, 0, data, arrivalTime)
 
             # if this cache is write-thru
             else:
                 # if cache hits, write to next level as well
-                if cache.read(address, arrivingTime)[0] != False:
+                if cache.writeAccess(address):
                     # write as not dirty because it will write through
                     cache.write(address, 0, data, arrivingTime)
 
-                # if cache misses
-                else:
-                    # if cache is last level, write default 100 memory data
-                    if cache.lastLevel:
-                        # add 100 if entered memory
-                        latency += 100
-                        cache.write(address, 0, random.randint(0, 255), arrivingTime)
+                # if cache misses do nothing, essentially would continue all the way to memory (not represented in our code)
 
         return latency
         
