@@ -1,5 +1,4 @@
 take largest multiple of block size that is bigger AND smaller than i ie (with block size 32 --> 35 goes to 32 low and 64 higher)
-block.data = [] of blocksize bytes
 
 write-back miss needs to write data passed in
 

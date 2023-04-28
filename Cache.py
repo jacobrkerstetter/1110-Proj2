@@ -87,7 +87,7 @@ class Cache:
                 # if level cache misses on write
                 else:
                     # write, may cause eviction based on LRU policy
-                    cache.write(address, 0, data, arrivalTime)
+                    cache.write(address, 0, data, arrivingTime)
 
             # if this cache is write-thru
             else:
